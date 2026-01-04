@@ -19,33 +19,8 @@ public class Piece {
             new Coordinate(1, 0),
             new Coordinate(-1, 0)
     );
-    Piece(PieceShape shape) {
+    public Piece(PieceShape shape) {
         this.shape = shape;
-    }
-
-
-    public void rightRotate() {
-        List<Coordinate> rightRotated = shape.getShape()
-                .stream()
-                .map(coord -> new Coordinate(coord.col(), coord.row() * -1))
-                .toList();
-        this.shape = new PieceShape(rightRotated);
-    }
-
-    public void leftRotate() {
-        List<Coordinate> leftRotated = shape.getShape()
-                .stream()
-                .map(coord -> new Coordinate(coord.col()*-1, coord.row()))
-                .toList();
-        this.shape = new PieceShape(leftRotated);
-    }
-
-    public void flip() {
-        List<Coordinate> flipped = shape.getShape()
-                .stream()
-                .map(coord -> new Coordinate(coord.row()*-1, coord.col()))
-                .toList();
-        this.shape = new PieceShape(flipped);
     }
 
     public List<Coordinate> getCells() {

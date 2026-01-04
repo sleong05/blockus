@@ -1,16 +1,21 @@
 package com.samuel_leong.blokus.controller;
 
+import com.samuel_leong.blokus.model.Coordinate;
 import com.samuel_leong.blokus.model.Game;
+import com.samuel_leong.blokus.model.Piece;
+import com.samuel_leong.blokus.model.PlacePieceRequest;
 import com.samuel_leong.blokus.service.GameService;
+import com.samuel_leong.blokus.service.PieceFactory;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/games")
 public class GameController {
     private final GameService gameService;
-
-    public GameController(GameService gameService) {
+    private final PieceFactory pieceFactory;
+    public GameController(GameService gameService, PieceFactory pieceFactory) {
         this.gameService = gameService;
+        this.pieceFactory = pieceFactory;
     }
 
     @PostMapping
@@ -23,5 +28,12 @@ public class GameController {
         return gameService.getGame(id);
     }
 
-//    @PutMapping("/api/games")
+    @PutMapping("/{id}/place")
+    public Game placePiece(@PathVariable String id, @RequestBody PlacePieceRequest request) {
+        Piece piece = pieceFactory.createPiece(request.piece(), request.orientation());
+        Coordinate placement = new Coordinate(request.row(), request.col());
+        gameService.placePiece(id, request.player(), placement, piece);
+
+        return gameService.getGame(id);
+    }
 }
