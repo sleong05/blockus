@@ -24,6 +24,7 @@ public class PieceFactory {
                 entry(PieceType.T4, new PieceShape(c(0, 0), c(1, 0), c(0, -1), c(0, 1))),
                 entry(PieceType.L4, new PieceShape(c(0, 0), c(1, 0), c(2, 0), c(0, 1))),
                 entry(PieceType.Z4, new PieceShape(c(0, 0), c(-1, 0), c(1, 1), c(0, 1))),
+                entry(PieceType.O4, new PieceShape(c(0, 0), c(1, 0), c(1, 1), c(0, 1))),
                 entry(PieceType.I5, new PieceShape(c(0, 0), c(-1, 0), c(-2, 0), c(1, 0), c(2, 0))),
                 entry(PieceType.L5, new PieceShape(c(0, 0), c(0, 1), c(3, 0), c(1, 0), c(2, 0))),
                 entry(PieceType.T5, new PieceShape(c(0, 0), c(0, 1), c(0, -1), c(1, 0), c(2, 0))),
@@ -79,6 +80,10 @@ public class PieceFactory {
 
     public Piece createPiece(PieceType pieceType, int orientation) {
         return orientations.get(pieceType).get(orientation);
+    }
+
+    public Map<PieceType, PieceShape> getListOfAllPieces() {
+        return pieces;
     }
 
     private static Coordinate c(int row, int col) {

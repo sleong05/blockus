@@ -30,6 +30,7 @@ public class GameController {
 
     @PutMapping("/{id}/place")
     public Game placePiece(@PathVariable String id, @RequestBody PlacePieceRequest request) {
+        // handle valid piece logic somewhere
         Piece piece = pieceFactory.createPiece(request.piece(), request.orientation());
         Coordinate placement = new Coordinate(request.row(), request.col());
         gameService.placePiece(id, request.player(), placement, piece);

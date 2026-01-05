@@ -13,7 +13,7 @@ public class Game {
     private PlayerColor currentTurn;
     private PlayerColor[] players;
 
-    private Board board;
+    private final Board board;
 
     public Game() {
         this.board = new Board();
