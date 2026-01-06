@@ -27,8 +27,7 @@ public class Piece {
         return shape.getShape();
     }
 
-
-    public List<Coordinate> getCorners() {
+    public List<Coordinate> calculateCorners() {
         Set<Coordinate> squareSet = new HashSet<>(shape.getShape());
         Set<Coordinate> cornerSet = new HashSet<>();
 

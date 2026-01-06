@@ -17,8 +17,8 @@ public class PieceFactory {
     public PieceFactory() {
         this.pieces = Map.ofEntries(
                 entry(PieceType.O1, new PieceShape(c(0, 0))),
-                entry(PieceType.I2, new PieceShape(c(0, 0), c(1, 0))),
-                entry(PieceType.V3, new PieceShape(c(0, 0), c(1, 0), c(0, -1))),
+                entry(PieceType.I2, new PieceShape(c(0, 0), c(-1, 0))),
+                entry(PieceType.V3, new PieceShape(c(0, 0), c(-1, 0), c(0, 1))),
                 entry(PieceType.I3, new PieceShape(c(0, 0), c(1, 0), c(-1, 0))),
                 entry(PieceType.I4, new PieceShape(c(0, 0), c(1, 0), c(-1, 0), c(-2, 0))),
                 entry(PieceType.T4, new PieceShape(c(0, 0), c(1, 0), c(0, -1), c(0, 1))),
@@ -78,15 +78,31 @@ public class PieceFactory {
         }
     }
 
+    private static Coordinate c(int row, int col) {
+        return new Coordinate(row, col);
+    }
+
     public Piece createPiece(PieceType pieceType, int orientation) {
-        return orientations.get(pieceType).get(orientation);
+        List<Piece> availableOrientations = orientations.get(pieceType);
+
+        if (availableOrientations == null) {
+            throw new IllegalArgumentException("PieceType " + pieceType + " not found in factory!");
+        }
+
+        if (orientation < 0 || orientation >= availableOrientations.size()) {
+            throw new IllegalArgumentException("Invalid orientation index: " + orientation);
+        }
+
+        return availableOrientations.get(orientation);
+    }
+
+    public List<List<Coordinate>> getPieceOrientations(PieceType pieceType) {
+        return orientations.get(pieceType).stream()
+            .map(Piece::getCells)
+            .toList();
     }
 
     public Map<PieceType, PieceShape> getListOfAllPieces() {
         return pieces;
-    }
-
-    private static Coordinate c(int row, int col) {
-        return new Coordinate(row, col);
     }
 }
