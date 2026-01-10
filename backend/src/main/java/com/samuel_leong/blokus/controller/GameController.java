@@ -6,7 +6,7 @@ import com.samuel_leong.blokus.service.PieceFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/games")
@@ -19,23 +19,28 @@ public class GameController {
     }
 
     @PostMapping
-    public Game createGame() {
-        return gameService.createGame();
-    } // should not return game later should just return board
+    public Map<String, String> createGame() {
+        Game game = gameService.createGame();
+        return Map.of("id", game.getId());
+    }
 
     @GetMapping("/{id}")
-    public Board getBoard(@PathVariable String id) {
-        return gameService.getGame(id).getBoard();
+    public ResponseEntity<?> getBoard(@PathVariable String id) {
+        Game game = gameService.getGame(id);
+
+        return (game == null) ?
+            ResponseEntity.notFound().build():
+            ResponseEntity.ok(game.getBoard());
     }
 
     @PutMapping("/{id}/place")
     public ResponseEntity<?> placePiece(@PathVariable String id, @RequestBody PlacePieceRequest request) {
         Piece piece = pieceFactory.createPiece(request.piece(), request.orientation());
         Coordinate placement = new Coordinate(request.row(), request.col());
-        Optional<Game> game = gameService.placePiece(id, request.player(), placement, piece);
+        Game game = gameService.placePiece(id, request.player(), placement, piece);
 
-        return (game.isPresent()) ?
-            ResponseEntity.ok(game.get().getBoard()) :
+        return (game != null) ?
+            ResponseEntity.ok(game.getBoard()) :
             ResponseEntity.badRequest().body("invalid move");
     }
 }

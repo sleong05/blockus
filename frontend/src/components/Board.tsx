@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import './Board.css';
 
+
 type Coordinate = { row: number; col: number };
 
 type SelectedPiece = {
@@ -11,10 +12,11 @@ type SelectedPiece = {
 
 type BoardProps = {
     selectedPiece: SelectedPiece;
-    currentOrientation: number
+    currentOrientation: number;
+    gameId: string;
 };
 
-function Board({ selectedPiece, currentOrientation }: BoardProps) {
+function Board({ selectedPiece, currentOrientation, gameId }: BoardProps) {
     // declare grid
     const [grid, setGrid] = useState(
         Array(20).fill(null).map(() => Array(20).fill("EMPTY"))
@@ -38,7 +40,7 @@ function Board({ selectedPiece, currentOrientation }: BoardProps) {
         }
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/games/abc123/place`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/games/${gameId}/place`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -80,7 +82,7 @@ function Board({ selectedPiece, currentOrientation }: BoardProps) {
 
     const fetchBoard = async () => {
         try {
-            const response = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/games/abc123`)
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/games/${gameId}`)
 
             if (!response.ok) {
                 console.error("Game not found");
