@@ -14,9 +14,10 @@ type BoardProps = {
     selectedPiece: SelectedPiece;
     currentOrientation: number;
     gameId: string;
+    playerId: string;
 };
 
-function Board({ selectedPiece, currentOrientation, gameId }: BoardProps) {
+function Board({ selectedPiece, currentOrientation, gameId, playerId }: BoardProps) {
     // declare grid
     const [grid, setGrid] = useState(
         Array(20).fill(null).map(() => Array(20).fill("EMPTY"))
@@ -36,7 +37,7 @@ function Board({ selectedPiece, currentOrientation, gameId }: BoardProps) {
             row: hoverCell.row,
             col: hoverCell.col,
             orientation: currentOrientation,
-            player: "RED"  // HARD CODED
+            playerId: playerId
         }
 
         try {
@@ -105,6 +106,15 @@ function Board({ selectedPiece, currentOrientation, gameId }: BoardProps) {
         );
     };
 
+    function updateBoard(board: any) {
+        const newGrid = Array(20).fill(null).map(() => Array(20).fill("EMPTY"));
+
+        for (const cell of board.grid) {
+            newGrid[cell.row][cell.col] = cell.color;
+        }
+        setGrid(newGrid);
+    }
+
     return (
         <div className="board">
             {grid.map((row, rowIndex) => (
@@ -123,13 +133,5 @@ function Board({ selectedPiece, currentOrientation, gameId }: BoardProps) {
         </div >
     );
 
-    function updateBoard(board: any) {
-        const newGrid = Array(20).fill(null).map(() => Array(20).fill("EMPTY"));
-
-        for (const cell of board.grid) {
-            newGrid[cell.row][cell.col] = cell.color;
-        }
-        setGrid(newGrid);
-    }
 }
 export default Board

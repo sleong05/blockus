@@ -15,6 +15,52 @@ function GamePage() {
     const [selectedPiece, setSelectedPiece] = useState<SelectedPiece>(null);
     const [orientation, setOrientation] = useState(0);
 
+    const [playerId, setPlayerId] = useState<string | null>(null);
+    const [color, setColor] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        console.log("useEffect running, gameId:", gameId);
+        if (!gameId) return;
+
+        const storedPlayerId = localStorage.getItem(`playerId_${gameId}`);
+        const storedColor = localStorage.getItem(`color_${gameId}`);
+
+        console.log("storedPlayerId:", storedPlayerId);
+        console.log("storedColor:", storedColor);
+
+        if (storedPlayerId && storedColor) {
+            console.log("Already joined, using stored values");
+            setPlayerId(storedPlayerId);
+            setColor(storedColor);
+        } else {
+            console.log("Not joined, calling joinGame");
+            joinGame();
+        }
+    }, [gameId])
+
+    const joinGame = async () => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/games/${gameId}/join`, {
+                method: 'POST'
+            });
+
+            if (!response.ok) {
+                setError('Game is full or no game with that code found');
+                return;
+            }
+
+            const data = await response.json();
+            localStorage.setItem(`playerId_${gameId}`, data.playerId);
+            localStorage.setItem(`color_${gameId}`, data.color);
+
+            setPlayerId(data.playerId);
+            setColor(data.color);
+        } catch (err) {
+            setError('Failed to join game');
+        }
+    };
+
     const handleSelectPiece = async (name: string) => {
         const response = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/pieces/${name}`);
         const orientations = await response.json();
@@ -59,6 +105,14 @@ function GamePage() {
         return <div>No game ID</div>;
     }
 
+    if (error) {
+        return <div>{error}</div>;
+    }
+
+    if (!playerId) {
+        return <div>Joining game...</div>;
+    }
+
     return (
         <>
             <p>Game: {gameId}</p>
@@ -68,6 +122,7 @@ function GamePage() {
                     gameId={gameId}
                     selectedPiece={selectedPiece}
                     currentOrientation={orientation}
+                    playerId={playerId}
                 />
             </div>
             <PieceInventory onSelectPiece={handleSelectPiece} />

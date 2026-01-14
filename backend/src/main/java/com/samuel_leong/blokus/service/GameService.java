@@ -23,12 +23,16 @@ public class GameService {
     public JoinResult joinGame(String gameId) {
         // returns null if game is full
         Game game = getGame(gameId);
-
+        System.out.println("After getGame, playerIds: " + game.getPlayerIds());  // Add getter
         String playerId = game.addPlayer();
+        System.out.println("After addPlayer, playerIds: " + game.getPlayerIds());
 
         if (playerId == null) return null;
 
+        System.out.println("Checking color");
         PlayerColor color = game.getPlayerColor(playerId);
+        System.out.println("color is " + color);
+        game.saveBoardToJson();
         gameRepository.save(game);
 
         return new JoinResult(playerId, color);
@@ -38,6 +42,12 @@ public class GameService {
         Game game = getGame(gameId);
 
         if (game == null) return null;
+
+        PlayerColor player = game.getPlayerColor(playerId);
+        if (game.getCurrentTurn() != player) {
+            System.out.println("Not " + player + " player's turn");
+            return null;
+        }
 
         PlayerColor playerColor = game.getPlayerColor(playerId);
 

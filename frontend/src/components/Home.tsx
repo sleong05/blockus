@@ -9,9 +9,13 @@ function Home() {
             method: 'POST'
         });
 
-        const game = await response.json();
+        const data = await response.json();
 
-        navigate(`/game/${game.id}`);
+        // store local information
+        localStorage.setItem(`playerId_${data.gameId}`, data.playerId);
+        localStorage.setItem(`color_${data.gameId}`, data.color);
+
+        navigate(`/game/${data.gameId}`);
     }
 
 

@@ -13,6 +13,10 @@ import static com.samuel_leong.blokus.util.Colors.playerColors;
 @Table(name="games")
 public class Game {
 
+    public Map<String, PlayerColor> getPlayerIds() {
+        return playerIds;
+    }
+
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Id
@@ -36,7 +40,7 @@ public class Game {
     public Game() {
         this.board = new Board();
         Random rand = new Random();
-        this.currentTurn = playerColors[rand.nextInt(4)];
+        this.currentTurn = playerColors[rand.nextInt(0,4)];
         this.id = generateId();
     }
 
@@ -52,11 +56,16 @@ public class Game {
     }
     @PrePersist
     @PreUpdate
-    private void saveBoardToJson() {
+    public void saveBoardToJson() {
+        System.out.println("saveBoardToJson called!");
         try {
             List<CellState> cells = board.getGrid();
             this.boardJson = objectMapper.writeValueAsString(cells);
             this.playersJson = objectMapper.writeValueAsString(playerIds);
+
+            System.out.println("Saving playerIds: " + playerIds);
+            System.out.println("Saving playersJson: " + playersJson);
+
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to convert board to json", e);
         }
