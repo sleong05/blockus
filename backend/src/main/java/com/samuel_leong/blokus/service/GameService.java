@@ -4,10 +4,6 @@ import com.samuel_leong.blokus.model.*;
 import com.samuel_leong.blokus.repository.GameRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
 @Service
 public class GameService {
 
@@ -24,14 +20,32 @@ public class GameService {
         return gameRepository.save(game);
     }
 
-    public Game placePiece(String gameId, PlayerColor player, Coordinate coord, Piece piece){
+    public JoinResult joinGame(String gameId) {
+        // returns null if game is full
+        Game game = getGame(gameId);
+
+        String playerId = game.addPlayer();
+
+        if (playerId == null) return null;
+
+        PlayerColor color = game.getPlayerColor(playerId);
+        gameRepository.save(game);
+
+        return new JoinResult(playerId, color);
+    }
+
+    public Game placePiece(String gameId, String playerId, Coordinate coord, Piece piece){
         Game game = getGame(gameId);
 
         if (game == null) return null;
 
-        if (!moveValidator.validMove(game.getBoard(), player, coord, piece)) return null;
+        PlayerColor playerColor = game.getPlayerColor(playerId);
 
-        game.placePiece(piece, player, coord);
+        if (playerColor == null) return null;
+
+        if (!moveValidator.validMove(game.getBoard(), playerColor, coord, piece)) return null;
+
+        game.placePiece(piece, playerColor, coord);
         game.nextTurn();
 
         gameRepository.save(game);

@@ -1,14 +1,13 @@
 package com.samuel_leong.blokus.model;
 
-import java.util.Random;
+import java.util.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import static com.samuel_leong.blokus.util.Colors.playerColors;
 
 @Entity
 @Table(name="games")
@@ -23,9 +22,10 @@ public class Game {
     private PlayerColor currentTurn;
 
     @Transient
-    private PlayerColor[] players = new PlayerColor[] {
-        PlayerColor.BLUE, PlayerColor.YELLOW, PlayerColor.RED, PlayerColor.GREEN
-    };
+    private Map<String, PlayerColor> playerIds = new HashMap<>();
+
+    @Column(columnDefinition = "TEXT")
+    private String playersJson;
 
     @Transient
     private Board board;
@@ -36,16 +36,27 @@ public class Game {
     public Game() {
         this.board = new Board();
         Random rand = new Random();
-        this.currentTurn = players[rand.nextInt(4)];
+        this.currentTurn = playerColors[rand.nextInt(4)];
         this.id = generateId();
     }
 
+    public String addPlayer() {
+        for (PlayerColor color:playerColors) {
+            if (!playerIds.containsValue(color)) {
+                String playerId = UUID.randomUUID().toString().substring(0, 8);
+                playerIds.put(playerId, color);
+                return playerId;
+            }
+        }
+        return null;
+    }
     @PrePersist
     @PreUpdate
     private void saveBoardToJson() {
         try {
             List<CellState> cells = board.getGrid();
             this.boardJson = objectMapper.writeValueAsString(cells);
+            this.playersJson = objectMapper.writeValueAsString(playerIds);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to convert board to json", e);
         }
@@ -58,25 +69,33 @@ public class Game {
     @PostLoad
     public void loadBoardFromJson() {
         try {
+            // load board
             this.board = new Board();
             if (boardJson!= null && !boardJson.isEmpty()) {
                 List<CellState> cells = objectMapper.readValue(
                     boardJson,
                     new TypeReference<List<CellState>>() {}
                 );
-            for (CellState cell: cells) {
-                board.setCell(new Coordinate(cell.row(), cell.col()), cell.color());
+                for (CellState cell: cells) {
+                    board.setCell(new Coordinate(cell.row(), cell.col()), cell.color());
+                }
             }
+
+            // load playerIds
+            this.playerIds = new HashMap<>();
+            if (playersJson != null && !playersJson.isEmpty()) {
+                this.playerIds = objectMapper.readValue(playersJson, new TypeReference<Map<String, PlayerColor>>() {
+                });
             }
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to load board from json");
+            throw new RuntimeException("Failed to load from json");
         }
     }
 
     public void nextTurn() {
         for (int i = 0; i<4; i++) {
-            if (players[i] == currentTurn) {
-                this.currentTurn = players[(i+1)%4];
+            if (playerColors[i] == currentTurn) {
+                this.currentTurn = playerColors[(i+1)%4];
                 return;
             }
         }
@@ -93,6 +112,9 @@ public class Game {
         }
     }
 
+    public boolean isValidPlayer(String playerId) {
+        return playerIds.containsKey(playerId);
+    }
 
     // getters and setters
 
@@ -108,11 +130,11 @@ public class Game {
         return this.board;
     }
 
-    public PlayerColor getCurrentTurn() {
-        return this.currentTurn;
+    public PlayerColor getPlayerColor(String playerId) {
+        return playerIds.get(playerId);
     }
 
-    public PlayerColor[] getPlayers() {
-        return this.players;
+    public PlayerColor getCurrentTurn() {
+        return this.currentTurn;
     }
 }

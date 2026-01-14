@@ -3,6 +3,7 @@ package com.samuel_leong.blokus.controller;
 import com.samuel_leong.blokus.model.*;
 import com.samuel_leong.blokus.service.GameService;
 import com.samuel_leong.blokus.service.PieceFactory;
+import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,9 +20,32 @@ public class GameController {
     }
 
     @PostMapping
-    public Map<String, String> createGame() {
+    public ResponseEntity<?> createGame() {
         Game game = gameService.createGame();
-        return Map.of("id", game.getId());
+        String gameId = game.getId();
+        JoinResult result = gameService.joinGame(gameId);
+
+        return ResponseEntity.ok(
+            Map.of(
+                "gameId", gameId,
+                "playerId", result.playerId(),
+                "color", result.color()
+            )
+        );
+    }
+
+    @PostMapping("/{id}/join")
+    public ResponseEntity<?> joinGame(@PathVariable String id) {
+        JoinResult result = gameService.joinGame(id);
+
+        return (result == null) ?
+            ResponseEntity.badRequest().body("Game is full"):
+            ResponseEntity.ok(
+                Map.of(
+                    "playerId", result.playerId(),
+                    "color", result.color()
+                )
+            );
     }
 
     @GetMapping("/{id}")
@@ -37,7 +61,7 @@ public class GameController {
     public ResponseEntity<?> placePiece(@PathVariable String id, @RequestBody PlacePieceRequest request) {
         Piece piece = pieceFactory.createPiece(request.piece(), request.orientation());
         Coordinate placement = new Coordinate(request.row(), request.col());
-        Game game = gameService.placePiece(id, request.player(), placement, piece);
+        Game game = gameService.placePiece(id, request.playerId(), placement, piece);
 
         return (game != null) ?
             ResponseEntity.ok(game.getBoard()) :
