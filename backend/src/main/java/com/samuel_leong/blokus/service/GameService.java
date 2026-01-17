@@ -38,7 +38,7 @@ public class GameService {
         return new JoinResult(playerId, color);
     }
 
-    public Game placePiece(String gameId, String playerId, Coordinate coord, Piece piece){
+    public Game placePiece(String gameId, String playerId, Coordinate coord, Piece piece, PieceType pieceType){
         Game game = getGame(gameId);
 
         if (game == null) return null;
@@ -55,7 +55,7 @@ public class GameService {
 
         if (!moveValidator.validMove(game.getBoard(), playerColor, coord, piece)) return null;
 
-        game.placePiece(piece, playerColor, coord);
+        game.placePiece(piece, playerColor, coord, playerId, pieceType);
         game.nextTurn();
 
         gameRepository.save(game);

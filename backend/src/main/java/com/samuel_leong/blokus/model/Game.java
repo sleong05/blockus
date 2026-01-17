@@ -31,6 +31,12 @@ public class Game {
     @Column(columnDefinition = "TEXT")
     private String playersJson;
 
+    @Column(columnDefinition = "TEXT")
+    private String inventoriesJson;
+
+    @Transient
+    private Map<String, List<PieceType>> inventories = new HashMap<>();
+
     @Transient
     private Board board;
 
@@ -49,6 +55,10 @@ public class Game {
             if (!playerIds.containsValue(color)) {
                 String playerId = UUID.randomUUID().toString().substring(0, 8);
                 playerIds.put(playerId, color);
+
+                // set inventory
+                inventories.put(playerId, new ArrayList<>(Arrays.asList(PieceType.values())));
+
                 return playerId;
             }
         }
@@ -62,9 +72,7 @@ public class Game {
             List<CellState> cells = board.getGrid();
             this.boardJson = objectMapper.writeValueAsString(cells);
             this.playersJson = objectMapper.writeValueAsString(playerIds);
-
-            System.out.println("Saving playerIds: " + playerIds);
-            System.out.println("Saving playersJson: " + playersJson);
+            this.inventoriesJson = objectMapper.writeValueAsString(inventories);
 
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to convert board to json", e);
@@ -96,9 +104,26 @@ public class Game {
                 this.playerIds = objectMapper.readValue(playersJson, new TypeReference<Map<String, PlayerColor>>() {
                 });
             }
+
+            // load inventories
+            this.inventories = new HashMap<>();
+            if (inventoriesJson != null && !inventoriesJson.isEmpty()) {
+                this.inventories = objectMapper.readValue(inventoriesJson, new TypeReference<Map<String, List<PieceType>>>() {
+                });
+            }
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to load from json");
         }
+    }
+
+    public void updateInventory(String playerId, PieceType piece) {
+        List<PieceType> inventory = inventories.get(playerId);
+
+        if (inventory != null) inventory.remove(piece);
+    }
+
+    public List<PieceType> getInventory(String playerId) {
+        return inventories.get(playerId);
     }
 
     public void nextTurn() {
@@ -114,11 +139,12 @@ public class Game {
         return player == currentTurn;
     }
 
-    public void placePiece(Piece piece, PlayerColor player, Coordinate center) {
+    public void placePiece(Piece piece, PlayerColor player, Coordinate center, String playerId, PieceType pieceType) {
         for (Coordinate cell: piece.getCells()) {
             Coordinate cellCentered = cell.add(center);
             board.setCell(cellCentered, player);
         }
+        updateInventory(playerId, pieceType);
     }
 
     public boolean isValidPlayer(String playerId) {

@@ -96,6 +96,15 @@ public class PieceFactory {
         return availableOrientations.get(orientation);
     }
 
+    public Map<PieceType, PieceShape> getPiecesForTypes(List<PieceType> pieceTypes) {
+        Map<PieceType, PieceShape> pieces = new HashMap<>();
+
+        for (PieceType pieceType: pieceTypes) {
+            pieces.put(pieceType, this.pieces.get(pieceType));
+        }
+        return pieces;
+    }
+
     public List<List<Coordinate>> getPieceOrientations(PieceType pieceType) {
         return orientations.get(pieceType).stream()
             .map(Piece::getCells)

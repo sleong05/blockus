@@ -7,6 +7,7 @@ import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -61,10 +62,25 @@ public class GameController {
     public ResponseEntity<?> placePiece(@PathVariable String id, @RequestBody PlacePieceRequest request) {
         Piece piece = pieceFactory.createPiece(request.piece(), request.orientation());
         Coordinate placement = new Coordinate(request.row(), request.col());
-        Game game = gameService.placePiece(id, request.playerId(), placement, piece);
+        Game game = gameService.placePiece(id, request.playerId(), placement, piece, request.piece());
 
         return (game != null) ?
             ResponseEntity.ok(game.getBoard()) :
             ResponseEntity.badRequest().body("invalid move");
+    }
+
+    @GetMapping("/{gameId}/inventory")
+    public ResponseEntity<?> getInventory(@PathVariable String gameId, @RequestParam String playerId) {
+        Game game = gameService.getGame(gameId);
+
+        if (game == null) return ResponseEntity.notFound().build();
+
+        List<PieceType> inventory = game.getInventory(playerId);
+
+        if (inventory == null) return ResponseEntity.badRequest().body("Invalid Player");
+
+        Map<PieceType, PieceShape> pieceInventory = pieceFactory.getPiecesForTypes(inventory);
+        return ResponseEntity.ok(pieceInventory);
+
     }
 }

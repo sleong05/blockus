@@ -19,6 +19,7 @@ function GamePage() {
     const [color, setColor] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
+
     useEffect(() => {
         console.log("useEffect running, gameId:", gameId);
         if (!gameId) return;
@@ -40,10 +41,13 @@ function GamePage() {
     }, [gameId])
 
     const joinGame = async () => {
+        console.log("joinGame started");
         try {
             const response = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/games/${gameId}/join`, {
                 method: 'POST'
             });
+
+            console.log("joinGame response status:", response.status);
 
             if (!response.ok) {
                 setError('Game is full or no game with that code found');
@@ -51,12 +55,16 @@ function GamePage() {
             }
 
             const data = await response.json();
+            console.log("joinGame data:", data);
+
             localStorage.setItem(`playerId_${gameId}`, data.playerId);
             localStorage.setItem(`color_${gameId}`, data.color);
 
             setPlayerId(data.playerId);
             setColor(data.color);
+            console.log("joinGame complete, ready set to true");
         } catch (err) {
+            console.log("joinGame error:", err);
             setError('Failed to join game');
         }
     };
@@ -125,7 +133,9 @@ function GamePage() {
                     playerId={playerId}
                 />
             </div>
-            <PieceInventory onSelectPiece={handleSelectPiece} />
+
+            <PieceInventory gameId={gameId} playerId={playerId} onSelectPiece={handleSelectPiece} />
+
         </>
     );
 }

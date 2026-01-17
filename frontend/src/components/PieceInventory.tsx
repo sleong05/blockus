@@ -7,9 +7,11 @@ type PiecesMap = Record<string, PieceData>;
 
 type PieceInventoryProps = {
     onSelectPiece: (pieceName: string) => void;
+    gameId: string;
+    playerId: string;
 }
 
-function PieceInventory({ onSelectPiece }: PieceInventoryProps) {
+function PieceInventory({ gameId, playerId, onSelectPiece }: PieceInventoryProps) {
     const [pieces, setPieces] = useState<PiecesMap>({})
     const pieceOrder = ['O1', 'I2', 'I3', 'V3', 'I4', 'L4', 'T4', 'O4', 'Z4', 'I5', 'L5', 'T5', 'X5', 'F5', 'Y5', 'N5', 'Z5', 'U5', 'P5', 'V5', 'W5'];
 
@@ -17,10 +19,22 @@ function PieceInventory({ onSelectPiece }: PieceInventoryProps) {
         fetchPieces();
     }, []);
 
-    const fetchPieces = async () => {
+    const fetchAllPieces = async () => {
         const response = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/pieces`);
         const data = await response.json();
         setPieces(data);
+    }
+
+    const fetchPieces = async () => {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/games/${gameId}/inventory?playerId=${playerId}`);
+        if (response.ok) {
+            const data = await response.json();
+            setPieces(data);
+        } else {
+            fetchAllPieces(); // fallback for initial startup race conditions
+        }
+
+
     }
 
     const centerPiece = (shape: Coordinate[]) => {
